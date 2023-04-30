@@ -112,3 +112,51 @@ print(port)
 
 
 
+def server_program():
+    # get the hostname
+    host = socket.gethostname()
+    #port = 5400  # initiate port no above 1024
+
+    print('In worker')
+    while True:
+        print('Starting Worker Connections...')
+        server_socket = socket.socket()  # get instance
+        # look closely. The bind() function takes tuple as argument
+        server_socket.bind((host, port))  # bind host address and port together
+        print('Worker Bound to '+str(port))
+        # configure how many client the server can listen simultaneously
+        print('Worker Listening...')
+        server_socket.listen(2)
+        conn, address = server_socket.accept()  # accept new connection
+        print("Worker got Connection from: " + str(address))
+        while True:
+            # receive data stream. it won't accept data packet greater than 1024 bytes
+            data = conn.recv(1024).decode()
+            if not data:
+                # if data is not received break
+                break
+            print("from connected user: " + str(data))
+            pie = '0'
+            words = data.split("!7zX")
+            if words[0] == 'WR':
+                file_descr = open(words[1], 'w+')
+                file_descr.write(words[2])
+                file_descr.close()
+            elif words[0] == 'RD':
+                file_descr = open(words[1], 'r')
+                pie = file_descr.read()
+                file_descr.close()
+                print(pie)
+            elif words[0] == 'MR':
+                map_shuffle_reduce(words[1], words[2])
+                file_descr = open(words[1], 'r')
+                print(pie)
+            #data = raw_input(' -> ')
+            data = pie
+            conn.send(data.encode())  # send data to the client
+        print('Client connection closed')
+        conn.close()  # close the connection
+
+if __name__ == '__main__':
+    server_program()
+
